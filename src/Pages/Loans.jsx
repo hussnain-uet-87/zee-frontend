@@ -14,7 +14,7 @@ export default function LoansPage() {
   // Fetch loans
   const fetchLoans = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/loans`);
+      const res = await axios.get("https://zee-server.vercel.app/api/loans");
       setLoans(res.data);
     } catch (err) {
       console.error(err);
@@ -31,7 +31,7 @@ export default function LoansPage() {
     if (!name || !amount || !issueDate) return;
 
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/loans`, {
+      const res = await axios.post("https://zee-server.vercel.app/api/loans", {
         name,
         amount,
         reason,
@@ -53,7 +53,7 @@ export default function LoansPage() {
     if (!window.confirm("Are you sure you want to delete this loan?")) return;
 
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/api/loans/${id}`);
+      await axios.delete(`https://zee-server.vercel.app/api/loans/${id}`);
       setLoans(loans.filter((loan) => loan._id !== id));
     } catch (err) {
       console.error(err);

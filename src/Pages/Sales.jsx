@@ -19,7 +19,7 @@ export default function Sales() {
 
     const profit = Number(totalSale) - Number(totalExpense);
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/sales`, {
+      const res = await axios.post("https://zee-server.vercel.app/api/sales", {
         date,
         totalSale,
         totalExpense,
@@ -44,7 +44,7 @@ export default function Sales() {
     );
     if (!confirmDelete) return;
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/api/sales/${id}`);
+      await axios.delete(`https://zee-server.vercel.app/api/sales/${id}`);
       fetchAnalytics();
       setRecords((prev) => (Array.isArray(prev) ? prev.filter((_, i) => i !== index) : []));
     } catch (err) {
@@ -54,7 +54,7 @@ export default function Sales() {
   useEffect(() => {
     const fetchSales = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/sales`);
+        const res = await axios.get(`https://zee-server.vercel.app/api/sales`);
         // Ensure the response is an array (API may return an object on error or different shape)
         if (Array.isArray(res.data)) {
           setRecords(res.data);
