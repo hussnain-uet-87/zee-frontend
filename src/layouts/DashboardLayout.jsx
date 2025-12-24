@@ -11,15 +11,15 @@ export default function DashboardLayout({children}) {
     profit: 0,
   });
    const fetchAnalytics = async () => {
-      try {
-        const res = await axios.get(
-          "http://localhost:5000/api/analytics/monthly"
-        );
-        setAnalytics(res.data);
-      } catch (err) {
-        console.error("Failed to fetch analytics", err);
-      }
-    };
+  try {
+    const res = await axios.get(
+      "https://zee-server.vercel.app/api/analytics/monthly" // Use your Vercel URL
+    );
+    setAnalytics(res.data);
+  } catch (err) {
+    console.error("Failed to fetch analytics", err);
+  }
+};
   useEffect(() => {
     fetchAnalytics();
   }, []);
