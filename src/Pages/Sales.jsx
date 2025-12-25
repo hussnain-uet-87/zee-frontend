@@ -5,7 +5,7 @@ import { useOutletContext } from "react-router-dom";
 
 export default function Sales() {
     const { analytics, setAnalytics } = useOutletContext();
-
+  const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [records, setRecords] = useState([]);
 
@@ -21,7 +21,7 @@ export default function Sales() {
     const sale = Number(totalSale);
     const expense = Number(totalExpense);
     const profit = sale - expense;
-
+    setIsLoading(true);
     try {
       const res = await axios.post("https://zee-server.vercel.app/api/sales", {
         date,
@@ -38,7 +38,7 @@ export default function Sales() {
         totalExpenses: (prev.totalExpenses || 0) + expense,
         profit: (prev.profit || 0) + profit
       }));
-
+      setIsLoading(false);
       setTotalSale("");
       setTotalExpense("");
       setIsModalOpen(false);
@@ -198,6 +198,7 @@ export default function Sales() {
                 </button>
                 <button
                   type="submit"
+                  disabled={isLoading}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                 >
                   Save
