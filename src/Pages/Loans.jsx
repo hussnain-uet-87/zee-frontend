@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { Plus, X, Trash2 } from "lucide-react";
 import axios from "axios";
+import { useOutletContext } from "react-router-dom";
 
 export default function LoansPage() {
+  const { setAnalytics } = useOutletContext(); // Keeping context for future use
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // ✅ Logic fix: loading state
   const [loans, setLoans] = useState([]);
   const [reason, setReason] = useState("");
-  // Modal fields
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [issueDate, setIssueDate] = useState(new Date().toISOString().split("T")[0]);
@@ -28,16 +30,17 @@ export default function LoansPage() {
   // Add new loan
   const handleAddLoan = async (e) => {
     e.preventDefault();
-    if (!name || !amount || !issueDate) return;
+    if (!name || !amount || !issueDate || isLoading) return; // ✅ Logic fix: prevent multi-clicks
 
+    setIsLoading(true); // ✅ Start loading
     try {
       const res = await axios.post("https://zee-server.vercel.app/api/loans", {
         name,
-        amount,
+        amount: Number(amount),
         reason,
         issueDate,
       });
-      setLoans([res.data, ...loans]); // Add to top
+      setLoans([res.data, ...loans]); 
       setName("");
       setAmount("");
       setReason("");
@@ -45,6 +48,8 @@ export default function LoansPage() {
       setIsModalOpen(false);
     } catch (err) {
       console.error(err);
+    } finally {
+      setIsLoading(false); // ✅ Stop loading
     }
   };
 
@@ -60,14 +65,12 @@ export default function LoansPage() {
     }
   };
 
-  
   // Totals
   const totalLoansDue = loans.length;
-  const amountDue = loans.reduce((acc, loan) => acc + loan.amount, 0);
+  const amountDue = loans.reduce((acc, loan) => acc + (Number(loan.amount) || 0), 0);
 
   return (
     <div className="p-6 bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 min-h-screen">
-      {/* Page Header */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-3xl text-green-800 underline font-bold">Loan Management</h2>
         <button
@@ -79,14 +82,13 @@ export default function LoansPage() {
         </button>
       </div>
 
-      {/* Loans Table */}
       <div className="bg-white shadow-md rounded-lg overflow-hidden mb-4">
         <table className="w-full text-left border-collapse">
           <thead className="bg-gradient-to-r text-center from-green-100 to-teal-200 text-green-800">
             <tr>
               <th className="px-4 py-2">Name</th>
               <th className="px-4 py-2">Amount</th>
-                  <th className="px-4 py-2">Reason</th>
+              <th className="px-4 py-2">Reason</th>
               <th className="px-4 py-2">Issue Date</th>
               <th className="px-4 py-2">Actions</th>
             </tr>
@@ -94,17 +96,14 @@ export default function LoansPage() {
           <tbody className="divide-y text-center divide-gray-200">
             {loans.length === 0 ? (
               <tr>
-                <td colSpan={5} className="py-4 text-gray-500">
-                  No loans found
-                </td>
+                <td colSpan={5} className="py-4 text-gray-500">No loans found</td>
               </tr>
             ) : (
               loans.map((loan) => (
                 <tr key={loan._id} className="hover:bg-gray-50 transition">
                   <td className="px-4 py-2">{loan.name}</td>
                   <td className="px-4 py-2 text-green-700 font-semibold">{loan.amount}</td>
-                        <td className="px-4 py-2">{loan.reason}</td>
-
+                  <td className="px-4 py-2">{loan.reason}</td>
                   <td className="px-4 py-2">{loan.issueDate.split("T")[0]}</td>
                   <td className="px-4 py-2">
                     <button
@@ -121,7 +120,6 @@ export default function LoansPage() {
         </table>
       </div>
 
-      {/* Total Loans Due & Amount Due */}
       <div className="flex justify-between items-center gap-4 mb-6">
         <div className="flex-1 bg-green-100 p-4 rounded-lg shadow hover:shadow-lg transition">
           <h3 className="text-sm font-medium text-green-800">Total Loans Due</h3>
@@ -133,7 +131,6 @@ export default function LoansPage() {
         </div>
       </div>
 
-      {/* Modal for Adding Loan */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-50">
           <div className="bg-white rounded-lg shadow-xl w-96 p-6 relative animate-scaleIn">
@@ -168,16 +165,17 @@ export default function LoansPage() {
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-400 focus:outline-none"
                 />
               </div>
+
               <div>
-  <label className="block text-sm font-medium mb-1">Reason</label>
-  <input
-    type="text"
-    placeholder="Short reason"
-    value={reason}
-    onChange={(e) => setReason(e.target.value)}
-    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-400 focus:outline-none"
-  />
-</div>
+                <label className="block text-sm font-medium mb-1">Reason</label>
+                <input
+                  type="text"
+                  placeholder="Short reason"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-400 focus:outline-none"
+                />
+              </div>
 
               <div>
                 <label className="block text-sm font-medium mb-1">Issue Date</label>
@@ -189,8 +187,6 @@ export default function LoansPage() {
                 />
               </div>
 
-              
-
               <div className="flex justify-end gap-2 mt-4">
                 <button
                   type="button"
@@ -201,9 +197,12 @@ export default function LoansPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                  disabled={isLoading} // ✅ Logic fix: disable while loading
+                  className={`px-4 py-2 text-white rounded-lg transition ${
+                    isLoading ? "bg-green-400 opacity-70 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"
+                  }`}
                 >
-                  Save
+                  {isLoading ? "Saving..." : "Save"}
                 </button>
               </div>
             </form>
