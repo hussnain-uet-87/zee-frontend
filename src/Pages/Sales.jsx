@@ -4,7 +4,7 @@ import axios from "axios";
 import { useOutletContext } from "react-router-dom";
 
 export default function Sales() {
-  const { analytics, setAnalytics } = useOutletContext();
+    const { analytics, setAnalytics } = useOutletContext();
   const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [records, setRecords] = useState([]);
@@ -13,62 +13,63 @@ export default function Sales() {
   const [totalSale, setTotalSale] = useState("");
   const [totalExpense, setTotalExpense] = useState("");
 
-  const handleAddRecord = async (e) => {
-    e.preventDefault();
-    // 1. Check inputs
-    if (!date || !totalSale || !totalExpense) return;
 
-    // 2. Immediately stop further clicks
-    if (isLoading) return;
+   const handleAddRecord = async (e) => {
+  e.preventDefault();
+  // 1. Check inputs
+  if (!date || !totalSale || !totalExpense) return;
+  
+  // 2. Immediately stop further clicks
+  if (isLoading) return; 
 
-    const sale = Number(totalSale);
-    const expense = Number(totalExpense);
-    const profit = sale - expense;
+  const sale = Number(totalSale);
+  const expense = Number(totalExpense);
+  const profit = sale - expense;
 
-    setIsLoading(true); // 3. Start Loading
+  setIsLoading(true); // 3. Start Loading
+  
+  try {
+    const res = await axios.post("https://zee-server.vercel.app/api/sales", {
+      date,
+      totalSale: sale,
+      totalExpense: expense,
+      profit,
+    });
 
-    try {
-      const res = await axios.post("https://zee-server.vercel.app/api/sales", {
-        date,
-        totalSale: sale,
-        totalExpense: expense,
-        profit,
-      });
+    setRecords(prev => [...prev, res.data]);
 
-      setRecords((prev) => [...prev, res.data]);
+    setAnalytics(prev => ({
+      totalSales: (prev.totalSales || 0) + sale,
+      totalExpenses: (prev.totalExpenses || 0) + expense,
+      profit: (prev.profit || 0) + profit
+    }));
 
-      setAnalytics((prev) => ({
-        totalSales: (prev.totalSales || 0) + sale,
-        totalExpenses: (prev.totalExpenses || 0) + expense,
-        profit: (prev.profit || 0) + profit,
-      }));
-
-      // Reset Form
-      setTotalSale("");
-      setTotalExpense("");
-      setIsModalOpen(false);
-    } catch (err) {
-      console.error("Error adding record:", err);
-      alert("Failed to save. Please try again.");
-    } finally {
-      // 4. Always re-enable button after process completes
-      setIsLoading(false);
-    }
-  };
+    // Reset Form
+    setTotalSale("");
+    setTotalExpense("");
+    setIsModalOpen(false);
+  } catch (err) {
+    console.error("Error adding record:", err);
+    alert("Failed to save. Please try again.");
+  } finally {
+    // 4. Always re-enable button after process completes
+    setIsLoading(false); 
+  }
+};
   const handleDelete = async (rec) => {
     if (!window.confirm("Are you sure?")) return;
 
     try {
       await axios.delete(`https://zee-server.vercel.app/api/sales/${rec._id}`);
 
-      setRecords((prev) => prev.filter((r) => r._id !== rec._id));
+      setRecords(prev => prev.filter(r => r._id !== rec._id));
 
-      // ✅ CORRECTED: Using Singular names from the 'rec' object
+      // ✅ CORRECTED: Using Singular names from the 'rec' object 
       // but updating Plural names in the Analytics state
-      setAnalytics((prev) => ({
+      setAnalytics(prev => ({
         totalSales: prev.totalSales - (rec.totalSale || 0),
         totalExpenses: prev.totalExpenses - (rec.totalExpense || 0),
-        profit: prev.profit - (rec.profit || 0),
+        profit: prev.profit - (rec.profit || 0)
       }));
     } catch (err) {
       console.error("Error deleting record:", err);
@@ -77,7 +78,9 @@ export default function Sales() {
   useEffect(() => {
     const fetchSales = async () => {
       try {
-        const res = await axios.get("https://zee-server.vercel.app/api/sales");
+        const res = await axios.get(
+          "https://zee-server.vercel.app/api/sales"
+        );
         setRecords(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
         console.error("Error fetching sales:", err);
@@ -124,9 +127,7 @@ export default function Sales() {
               records.map((rec, i) => (
                 <tr key={rec._id || i} className="hover:bg-gray-50 transition">
                   <td className="px-4 py-2">
-                    {rec.date
-                      ? new Date(rec.date).toISOString().split("T")[0]
-                      : "-"}
+                    {rec.date ? new Date(rec.date).toISOString().split("T")[0] : "-"}
                   </td>
                   <td className="px-4 py-2">{rec.totalSale}</td>
                   <td className="px-4 py-2">{rec.totalExpense}</td>
@@ -175,9 +176,7 @@ export default function Sales() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">
-                  Total Sale
-                </label>
+                <label className="block text-sm font-medium mb-1">Total Sale</label>
                 <input
                   type="number"
                   value={totalSale}
@@ -188,9 +187,7 @@ export default function Sales() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">
-                  Total Expense
-                </label>
+                <label className="block text-sm font-medium mb-1">Total Expense</label>
                 <input
                   type="number"
                   value={totalExpense}
@@ -202,48 +199,33 @@ export default function Sales() {
 
               <div className="flex justify-end gap-2 mt-4">
                 <button
-                  type="submit"
-                  disabled={isLoading}
-                  className={`px-4 py-2 rounded-lg transition text-white ${
-                    isLoading
-                      ? "bg-blue-400 cursor-not-allowed opacity-70"
-                      : "bg-blue-600 hover:bg-blue-700"
-                  }`}
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
                 >
-                  {isLoading ? (
-                    <span className="flex items-center gap-2">
-                      <svg
-                        className="animate-spin h-4 w-4 text-white"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                          fill="none"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Saving...
-                    </span>
-                  ) : (
-                    "Save"
-                  )}
+                  Cancel
                 </button>
                 <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                >
-                  Save
-                </button>
+  type="submit"
+  disabled={isLoading}
+  className={`px-4 py-2 rounded-lg transition text-white ${
+    isLoading 
+      ? "bg-blue-400 cursor-not-allowed opacity-70" 
+      : "bg-blue-600 hover:bg-blue-700"
+  }`}
+>
+  {isLoading ? (
+    <span className="flex items-center gap-2">
+      <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      Saving...
+    </span>
+  ) : (
+    "Save"
+  )}
+</button>
               </div>
             </form>
           </div>
