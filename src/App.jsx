@@ -6,7 +6,9 @@ import Loans from "./Pages/Loans";
 import Reports from "./Pages/Reports";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Navigate } from "react-router-dom";
-
+import Expense from "./Pages/Expense";
+import Cost from "./Pages/Cost";
+import MonthlyReportsPage from "./Pages/MonthlyReportsPage";
 function App() {
   return (
     <Routes>
@@ -25,6 +27,10 @@ function App() {
         <Route path="sales" element={<Sales />} />
         <Route path="loans" element={<Loans />} />
         <Route path="reports" element={<Reports />} />
+        <Route path="expenses" element={<Expense />} />
+        <Route path="items-cost" element={<Cost />} />
+        <Route path="monthly-reports" element={<MonthlyReportsPage />} />
+
       </Route>
     </Routes>
   );
